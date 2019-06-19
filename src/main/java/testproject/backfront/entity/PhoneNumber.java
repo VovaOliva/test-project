@@ -1,20 +1,29 @@
 package testproject.backfront.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "phoneNumbers")
-public class PhoneNumbers extends Base{
+@Builder
+public class PhoneNumber {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private LocalDateTime createdDate;
+
+    @Column(unique = true)
     private String phoneNumber;
+
+    @ManyToOne
+    private User user;
 }
