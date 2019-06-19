@@ -16,7 +16,7 @@ public interface ContactService {
 
     ContactDto getByPhoneNumber(String phoneNumber);
 
-    List<ContactDto> getByFullName(String fullName);
+    ContactDto getByFullName(String fullName);
 
     ContactDto getContact(Long userId);
 }

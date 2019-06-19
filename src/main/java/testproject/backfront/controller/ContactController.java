@@ -27,17 +27,17 @@ public class ContactController {
     }
 
     @GetMapping("/contacts/{userId}")
-    public ContactDto getContact(@PathVariable Long userId) {
+    public ContactDto getContact(@PathVariable(value = "userId") Long userId) {
         return contactService.getContact(userId);
     }
 
     @PutMapping("/contacts/{id}")
-    public void updateContact(@PathVariable("id") Long id, @RequestBody ContactDto contactDto) {
+    public void updateContact(@PathVariable(value = "id") Long id, @RequestBody ContactDto contactDto) {
         contactService.updateContact(id, contactDto);
     }
 
     @DeleteMapping("/contacts/{userId}")
-    public void deleteContact(@PathVariable Long userId) {
+    public void deleteContact(@PathVariable(value = "userId") Long userId) {
         contactService.deleteContact(userId);
     }
 
@@ -47,7 +47,7 @@ public class ContactController {
     }
 
     @GetMapping("/contacts/byName")
-    public List<ContactDto> getAllContactsByFullName(@RequestParam(name = "name") String fullName) {
+    public ContactDto getAllContactsByFullName(@RequestParam(name = "name") String fullName) {
         return contactService.getByFullName(fullName);
     }
 

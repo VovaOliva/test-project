@@ -17,7 +17,7 @@ import testproject.backfront.repository.UserRepository;
 import java.time.LocalDateTime;
 
 import java.util.List;
-import java.util.Optional;
+
 import java.util.stream.Collectors;
 
 @Service
@@ -32,17 +32,25 @@ public class ContactServiceImpl implements ContactService {
     @Autowired
     private UserRepository userRepository;
 
+
+
     @Override
-    public List<ContactDto> getAllContacts() {
-        return null;
+    @Transactional(readOnly = true)
+    public List <ContactDto> getAllContacts() {
+        List <Long> userIds = userRepository.getAllContactsById();
+
+        return userIds.stream()
+                .map(userId -> getContact(userId))
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public void addContact(ContactDto contactDto) {
 
        User user = User.builder()
-                .userFullName(contactDto.getContactName())
-                .userEmail(contactDto.getContactName())
+                .fullName(contactDto.getContactName())
+                .email(contactDto.getContactEmail())
                 .createdDate(LocalDateTime.now())
                 .build();
 
@@ -73,8 +81,8 @@ public class ContactServiceImpl implements ContactService {
 
         User updateUser = User.builder()
                             .id(id)
-                            .userFullName(contactDto.getContactName())
-                            .userEmail(contactDto.getContactEmail())
+                            .fullName(contactDto.getContactName())
+                            .email(contactDto.getContactEmail())
                             .createdDate(LocalDateTime.now())
                             .build();
 
@@ -95,12 +103,13 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
+    @Transactional
     public void deleteContact(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new UserNotFoundExeption("User not found "));
         addressRepository.deleteAllByUser(user);
         phoneNumberRepository.deleteAllByUser(user);
-        userRepository.deleteById(userId);
+        userRepository.delete(user);
     }
 
     @Override
@@ -109,43 +118,43 @@ public class ContactServiceImpl implements ContactService {
 
         PhoneNumber phone = phoneNumberRepository.findByPhoneNumber(phoneNumber);
         if (phone == null) {
-            throw new UserNotFoundExeption("User not found by this number : " + phoneNumber);
+            throw new UserNotFoundExeption("User not found  : " + phoneNumber);
         }
         return getContact(phone.getUser().getId());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContactDto> getByFullName(String fullName) {
+    public ContactDto getByFullName(String fullName) {
 
-        List<User> users = (List<User>) userRepository.findUserByFullName(fullName);
+        User user = userRepository.findUserByFullName(fullName);
 
-        return users.stream()
-                .map(user -> getContact(user.getId()))
-                .collect(Collectors.toList());
+        return getContact(user.getId());
 
 
     }
 
     @Override
+    @Transactional
     public ContactDto getContact(Long userId) {
 
-        Optional<User> user = Optional.ofNullable(userRepository.findById(userId).orElseThrow(() ->
-                new UserNotFoundExeption("User not found by id : " + userId)));;
-        List<String> phoneNumbers = getPhoneNumbers(user);
-        List<Address> addresses = addressRepository.findAllByUser(user);
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User not found"));
 
-        return ContactDto.builder()
-                .userId(user.get().getId())
-                .contactName(user.get().getUserFullName())
-                .contactEmail(user.get().getUserEmail())
-                .phoneNumbers(phoneNumbers)
-                .addresses(addresses.stream().map(address -> convertAddressToAddressDto(address)).collect(Collectors.toList()))
+        List <PhoneNumber> phoneNumbers = phoneNumberRepository.findAllByUser(user);
+        List <Address> addresses = addressRepository.findAllByUser(user);
+
+        ContactDto contactDto = ContactDto.builder()
+                .contactName(user.getFullName())
+                .contactEmail(user.getEmail())
+                .phoneNumbers(phoneNumbers.stream().map(PhoneNumber::getPhoneNumber).collect(Collectors.toList()))
+                .addresses(addresses.stream().map(address -> AddressToAddressDto(address)).collect(Collectors.toList()))
                 .build();
+
+        return contactDto;
 
     }
 
-    private AddressDto convertAddressToAddressDto(Address address) {
+    private AddressDto AddressToAddressDto(Address address) {
         return AddressDto.builder()
                 .country(address.getCountry())
                 .city(address.getCity())
@@ -155,10 +164,5 @@ public class ContactServiceImpl implements ContactService {
                 .build();
     }
 
-    private List<String> getPhoneNumbers(Optional<User> user) {
-        List<PhoneNumber> numbers = phoneNumberRepository.findAllByUser(user);
-        return numbers.stream()
-                .map(phoneNumber -> phoneNumber.getPhoneNumber())
-                .collect(Collectors.toList());
-    }
+
 }

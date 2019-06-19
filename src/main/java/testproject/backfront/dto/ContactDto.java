@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ContactDto {
 
-    private Long userId;
+
     private String contactName;
     private String contactEmail;
     private List<String> phoneNumbers;

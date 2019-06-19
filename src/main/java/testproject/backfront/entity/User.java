@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+
+
 import java.time.LocalDateTime;
 
 
@@ -22,6 +24,10 @@ public class User {
     private Long id;
 
     private LocalDateTime createdDate;
-    private String userFullName;
-    private String userEmail;
+
+
+    private String fullName;
+
+
+    private String email;
 }
